@@ -23,7 +23,6 @@ describe("swap3", () => {
   it("Swap Tokens", async () => {
     const payer = await newAccountWithLamports(program.provider.connection);
     const tokenSwapAccount = new anchor.web3.Account();
-    //const tokenSwapAccount = await newAccountWithLamports(program.provider.connection);
 
     const [tokenSwapAccountAuthority, tokenSwapAccountAuthorityBump] =
       await anchor.web3.PublicKey.findProgramAddress(
@@ -76,7 +75,7 @@ describe("swap3", () => {
         payer,
         tokenPoolMint,
         payer.publicKey,
-        true
+        false
       );
     const swapTokenATokenAccount = await spl.getOrCreateAssociatedTokenAccount(
       program.provider.connection,
