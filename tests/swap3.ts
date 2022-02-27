@@ -1,6 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import * as spl from "@solana/spl-token";
 import * as tokenSwap from "@solana/spl-token-swap";
+import * as assert from "assert";
 import { Program } from "@project-serum/anchor";
 import { Swap3 } from "../target/types/swap3";
 
@@ -163,9 +164,12 @@ describe("swap3", () => {
     );
     console.log("user setup complete");
 
+    const amountIn = 10;
+    const minAmountOut = 5;
+
     const swapTokensTxSig = await program.rpc.swapTokens(
-      new anchor.BN(10),
-      new anchor.BN(5),
+      new anchor.BN(amountIn),
+      new anchor.BN(minAmountOut),
       {
         accounts: {
           destinationMint: tokenBMint,
@@ -188,6 +192,12 @@ describe("swap3", () => {
       }
     );
     console.log("swapTokensTxSig:", swapTokensTxSig);
+
+    // assert we have at least min amount
+    const balance = await program.provider.connection.getTokenAccountBalance(
+      userTokenBATA.address
+    );
+    assert.ok(Number(balance.value.amount) >= minAmountOut);
   });
 });
 

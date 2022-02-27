@@ -51,8 +51,11 @@ pub mod swap3 {
         )?;
 
         // swap tokens
-        anchor_lang::solana_program::program::invoke(&ix, &accounts)?;
-        Ok(())
+        // TODO: how to do without match
+        match anchor_lang::solana_program::program::invoke(&ix, &accounts) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
     }
 }
 
