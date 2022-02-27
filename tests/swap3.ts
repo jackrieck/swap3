@@ -22,7 +22,6 @@ describe("swap3", () => {
 
   it("Swap Tokens", async () => {
     const payer = await newAccountWithLamports(program.provider.connection);
-
     const tokenSwapAccount = new anchor.web3.Account();
 
     const [tokenSwapAccountAuthority, tokenSwapAccountAuthorityBump] =
@@ -75,8 +74,8 @@ describe("swap3", () => {
         program.provider.connection,
         payer,
         tokenPoolMint,
-        program.provider.wallet.publicKey,
-        false,
+        payer.publicKey,
+        false
       );
     const swapTokenATokenAccount = await spl.getOrCreateAssociatedTokenAccount(
       program.provider.connection,
@@ -138,7 +137,45 @@ describe("swap3", () => {
       HOST_FEE_DENOMINATOR,
       tokenSwap.CurveType.ConstantProduct
     );
-    console.log("pool:", pool);
+
+    // setup user
+    const user = await newAccountWithLamports(program.provider.connection);
+
+    // user ATA's
+    const userTokenAATA = await spl.getOrCreateAssociatedTokenAccount(
+      program.provider.connection,
+      payer,
+      tokenAMint,
+      user.publicKey
+    );
+    const userTokenBATA = await spl.getOrCreateAssociatedTokenAccount(
+      program.provider.connection,
+      payer,
+      tokenBMint,
+      user.publicKey
+    );
+
+    // mint source tokens to user ATA
+    await spl.mintTo(
+      program.provider.connection,
+      payer,
+      tokenAMint,
+      userTokenAATA.address,
+      payer.publicKey,
+      10
+    );
+
+    const swapTxSig = await pool.swap(
+      userTokenAATA.address,
+      swapTokenATokenAccount.address,
+      swapTokenBTokenAccount.address,
+      userTokenBATA.address,
+      feeAccount.address,
+      user,
+      10,
+      5
+    );
+    console.log("swapTxSig:", swapTxSig);
   });
 });
 
