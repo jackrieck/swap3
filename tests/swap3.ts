@@ -138,21 +138,18 @@ describe("swap3", () => {
       tokenSwap.CurveType.ConstantProduct
     );
 
-    // setup user
-    const user = await newAccountWithLamports(program.provider.connection);
-
     // user ATA's
     const userTokenAATA = await spl.getOrCreateAssociatedTokenAccount(
       program.provider.connection,
       payer,
       tokenAMint,
-      user.publicKey
+      program.provider.wallet.publicKey
     );
     const userTokenBATA = await spl.getOrCreateAssociatedTokenAccount(
       program.provider.connection,
       payer,
       tokenBMint,
-      user.publicKey
+      program.provider.wallet.publicKey
     );
 
     // mint source tokens to user ATA
@@ -164,18 +161,33 @@ describe("swap3", () => {
       payer.publicKey,
       10
     );
+    console.log("user setup complete");
 
-    const swapTxSig = await pool.swap(
-      userTokenAATA.address,
-      swapTokenATokenAccount.address,
-      swapTokenBTokenAccount.address,
-      userTokenBATA.address,
-      feeAccount.address,
-      user,
-      10,
-      5
+    const swapTokensTxSig = await program.rpc.swapTokens(
+      new anchor.BN(10),
+      new anchor.BN(5),
+      {
+        accounts: {
+          destinationMint: tokenBMint,
+          sourceMint: tokenAMint,
+          destination: userTokenBATA.address,
+          source: userTokenAATA.address,
+          swapDestination: swapTokenBTokenAccount.address,
+          swapSource: swapTokenATokenAccount.address,
+          poolMint: tokenPoolMint,
+          amm: tokenSwapAccount.publicKey,
+          ammAuthority: tokenSwapAccountAuthority,
+          poolFee: feeAccount.address,
+          user: program.provider.wallet.publicKey,
+          tokenSwapProgram: tokenSwap.TOKEN_SWAP_PROGRAM_ID,
+          tokenProgram: spl.TOKEN_PROGRAM_ID,
+          associatedTokenProgram: spl.ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        },
+      }
     );
-    console.log("swapTxSig:", swapTxSig);
+    console.log("swapTokensTxSig:", swapTokensTxSig);
   });
 });
 
